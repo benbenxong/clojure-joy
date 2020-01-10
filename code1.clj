@@ -1,3 +1,13 @@
+;; emacs 中文卡问题
+;; Setting English Font
+(set-face-attribute
+ 'default nil :font "Courier New-14")
+;; Setting Chinese Font
+(dolist (charset '(kana han symbol cjk-misc bopomofo))
+(set-fontset-font (frame-parameter nil 'font)
+charset
+(font-spec :family "Microsoft Yahei" :size 16)))
+
 ;;for 返回一个惰性seq, doseq只为产生副作用。
 (for [x [:a :b], y (range 5) :when (odd? y)]
   [x y])
