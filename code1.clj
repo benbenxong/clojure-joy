@@ -185,3 +185,75 @@
 
 ;;;; 3 ;;;;;
 
+;;不要建boolean 对象
+(def evil-false (Boolean. "false"))
+(if evil-false :true :false)
+;;=> :true
+
+;; 正确作法
+(if (Boolean/valueOf "false") :true :false)
+;;=> :false
+
+;; 除了nil和false 都是 true
+;; nil? false?
+(when (nil? nil) "nil, not false")
+
+;; nil双关
+(seq [])
+;;=> nil
+
+(defn print-seq [s]
+  (when (seq s)
+    (prn (first s))
+    (recur (rest s))))
+;; rest([]) 返回 ()
+
+;; 解构
+(let [[a b c & more] (range 10)]
+  (println "a b c are:" a b c)
+  (println "more is: " more))
+
+(let [range-vec (vec (range 10))
+      [a b c & more :as all] range-vec]
+  (println "a b c : " a b c)
+  (println "more : " more)
+  (println "all :" all))
+
+(def guys-name-map
+  {:f-name "Gug" :m-name "Lewis" :l-name "Steele"})
+(let [{f-name :f-name, m-name :m-name, l-name :l-name} guys-name-map]
+  (str l-name ", " f-name " " m-name))
+
+;; 解构出来的符号与键值同名
+(let [{:keys [f-name l-name m-name]} guys-name-map]
+  (str l-name ", " f-name " " m-name))
+
+(let [{f-name :f-name :as whole-name} guys-name-map]
+  (println "First name is " f-name)
+  (println "Whole name is below:")
+  whole-name)
+
+;; 未绑定的符号提供默认值:
+(let [{:keys [title f-name m-name l-name],
+       :or {title "Mr."}} guys-name-map]
+  (println title f-name m-name l-name))
+
+;; 所有用于map结构也适用于list
+(defn whole-name [& args]
+  (let [{:keys [f-name m-name l-name]} args]
+    (str l-name ", " f-name " " m-name)))
+(whole-name :f-name "Guy" :m-name "Lewis" :l-name "Steele")
+
+;; map 解构 list
+(let [{first-thing 0, last-thing 3} [1 2 3 4]]
+  [first-thing last-thing])
+
+;; 解构函数参数
+(defn print-last-name [{:keys [l-name]}]
+  (println l-name))
+(print-last-name guys-name-map)
+
+;; 实例
+(for [x (range 2) y (range 2)] [x y])
+
+(find-doc "xor");;只能在交互模式下执行
