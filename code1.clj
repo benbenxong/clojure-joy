@@ -152,7 +152,7 @@
 (throw-catch #(throw (Exception. "Crybaby")))
 
 ;;命名空间
-(ns joy.ch2)
+;;(ns joy.ch2)
 
 ;;在joy.ch2里定义函数
 (defn report-ns []
@@ -258,3 +258,37 @@
 (for [x (range 2) y (range 2)] [x y])
 
 (find-doc "xor");;只能在交互模式下执行
+
+;;;;; 4 ;;;;;;;
+;; 关键字 做键值
+(def population {:zombies 2700,:humans 9})
+(get population :zombies)
+
+;; 关键字做函数
+(:zombies population)
+
+;; 作为枚举
+
+;; 作为多重方法分发值
+
+;; 作为指令
+(defn pour [lb ub]
+  (cond 
+   (= ub :toujours) (iterate inc lb)
+   :else (range lb ub)))
+
+(pour 1 :toujours)
+;; ...runs forever
+;; :else 起到真值的作用。
+
+;; 限定关键字
+::not-in-ns
+;;=> :user/not-in-ns
+
+;; 符号解析
+(identical? 'got 'got)
+;;=> false
+(identical? :got :got)
+;;=> true
+(= 'got 'got)
+;;=> true
