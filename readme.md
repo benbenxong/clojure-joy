@@ -7,3 +7,4 @@
 (set-fontset-font (frame-parameter nil 'font)
 charset
 (font-spec :family "Microsoft Yahei" :size 16)))
+;;bug fix test...
