@@ -160,10 +160,11 @@
 ;;(ns joy.another)后，report-ns不可见
 ;;但joy.ch2/report-ns可见，但这要求joy.ch2隐
 ;;式加载过或:require加载过才行。
-
+(ns user)
 ;;:require 表空间
 (ns joy.req-alias 
-  (:require [clojure.set :as s]))
+  (:require [clojure.set :as s])
+  )
 
 ;;:refer 映射。只有capitalize函数能映射到此。
 ;;尽管可以使用:refer :all或:use 。但不建议这么做。
@@ -292,3 +293,149 @@
 ;;=> true
 (= 'got 'got)
 ;;=> true
+
+;;元数据
+(let [x (with-meta 'goat {:ornery true})
+      y (with-meta 'goat {:ornery false})]
+  [(= x y)
+   (identical? x y)
+   (meta x)
+   (meta y)])
+
+;; lisp-1
+(defn best [f xs]
+  (reduce #(if (f %1 %2) %1 %2) xs))
+
+;;正则表达式
+(class #"example")
+;;=>java.util.regex.Pattern
+
+;; re-seq 
+(re-seq #"\w+" "one-two/three")
+
+;; re-seq cap-group
+(re-seq #"\w+(\w)" "one-two/three")
+
+;;;;; 5 ;;;;;;
+;; 持久性
+(def ds [:willie :barnabas :adam])
+(def ds1 (replace {:barnabas :quentin} ds))
+;;=> ds 没有变
+
+;; seq api
+;; first,rest nil,()
+(seq []) 
+(seq [1 2])
+
+;; 等价划分
+(= [1 2 3] '(1 2 3))
+;; => true 因为它们都属于顺序的。
+(= [1 2 3] #{1 2 3})
+;; => false 因为一个属于set
+
+;; 序列抽象
+(seq (hash-map :a 1))
+;;=> ([:a 1])
+(seq (keys (hash-map :a 1)))
+;;=> (:a)
+
+;; 构建vector
+(vec (range 10))
+
+(let [my-vector [:a :b :c]]
+  (into my-vector (range 10)))
+;;如果想返回一个vector,into第一个参数必是vector.
+
+;; 原生类型vector
+(into (vector-of :int) [Math/PI 2 4.6])
+;;=>[3 2 4]
+
+;; vector有3个方面特别高效：1.右端添加删除；2.数字索引；3.反向遍历
+(def a-to-j (vec (map char (range 65 75))))
+(nth a-to-j 4)
+(get a-to-j 4)
+(a-to-j 4)
+;;               nth        get      vector函数
+;; vector为nil   ret nil    nil       error
+;; 索引越界        error      nil       error
+;; 支持未找到实参加  是          是         否
+;;               (nth [] 11 :whoops)
+(seq a-to-j)
+(rseq a-to-j)
+(assoc a-to-j 4 "no longer E")
+(replace {2 :a 4 :b} [1 2 3 2 3 4])
+
+(def matrix
+  [[1 2 3]
+   [4 5 6]
+   [7 8 9]])
+(get-in matrix [1 2])
+;;=> 6
+(assoc-in matrix [1 2] 'x)
+(update-in matrix [1 2] * 100)
+
+;;neighbors函数
+(defn neighbors
+  ([size yx] (neighbors [[-1 0] [1 0] [0 -1] [0 1]]
+                        size
+                        yx))
+  ([deltas size yx]
+   (filter (fn [new-yx]
+             (every? #(< -1 % size) new-yx))
+           (map #(vec (map + yx %))
+                deltas))))
+
+;; 可以用get-in找到具体项
+(map #(get-in matrix %) (neighbors 3 [0 0]))
+
+;; vector 当作栈
+;; push/pop conj/pop
+(def my-stack [1 2 3])
+(peek my-stack)
+;;=>3
+(pop my-stack)
+;;=>[1 2]
+(conj my-stack 4)
+;;=> [1 2 3 4]
+(+ (peek my-stack) (peek (pop my-stack)))
+;;=> 5
+
+;; 使用vector而非reverse
+(defn strict-map1 [f coll]
+  (loop [coll coll, acc nil]
+    (if (empty? coll)
+      (reverse acc)
+      (recur (next coll)
+             (cons (f (first coll)) acc)))))
+
+(strict-map1 - (range 5))
+
+(defn strict-map2 [f coll]
+  (loop [coll coll, acc []]
+    (if (empty? coll)
+      acc
+      (recur (next coll)
+             (conj acc (f (first coll)))))))
+(strict-map2 - (range 5))
+
+;; 子vector 是建立在原vector之上的
+(subvec a-to-j 3 6)
+;;=> [d e f]
+
+;; vector当作MapEntry
+(first {:w 10 :h 20 :d 15})
+(rest {:w 10 :h 20 :d 15})
+(doseq [[dimension amount] {:w 10 :h 20 :d 15}]
+  (println (str (name dimension) ":") amount))
+
+;; vector不是什么
+;; 1.vector不可以插入删除，只能在尾部这样做。
+;; 2.vector不是队列。用PersistentQueue
+;; 3.vector不是set.contains?问的是集合中键值，而非值。
+
+;; list ;;
+(cons 1 '(2 3))
+(conj '(2 3) 1)
+;;正确方式是conj
+
+;; list也可当作栈
