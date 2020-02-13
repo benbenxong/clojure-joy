@@ -439,3 +439,44 @@
 ;;正确方式是conj
 
 ;; list也可当作栈
+;; peek pop (first / next)
+
+;; list 不是什么
+;; list 不能基于索引查找，这里vector做得很好。(nth coll n)
+;; list 不是set
+;; list 不是队列
+
+;; 如何使用持久化队列
+(defmethod print-method clojure.lang.PersistentQueue
+  [q, w] ;;重载打印函数，打印的格式像条鱼
+  (print-method '<- w)
+  (print-method (seq q) w) ;;代理其他方法，打印队列内容
+  (print-method '-< w))
+
+clojure.lang.PersistentQueue/EMPTY
+
+;; vector做队列的简易做法：
+(def my-vec [1 2 3])
+(peek my-vec)
+(pop my-vec)
+(conj my-vec 4)
+
+;; 入队
+(def schedule
+  (conj clojure.lang.PersistentQueue/EMPTY
+        :wake-up :shower :brush-teeth))
+schedule
+;; 获取
+(peek schedule)
+;; 出队
+(pop schedule)
+(rest schedule)
+;;rest 返回的是seq，而非队列
+
+;; 持久化set
+;; 集合，无序且唯一
+(#{:a :b :c :d} :c)
+(get #{:a 1 :b 2} :z :nothing-doing)
+;; 如果两个元素求值结果是相等的，那么set保持一个。与具体类型无关。
+(into #{[]} [()])
+(into #{#{} {} []} [()])
