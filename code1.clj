@@ -539,3 +539,59 @@ schedule
 
 (defn pos [pred coll]
   (for [[i v] (index coll) :when (pred v)] i))
+
+;; 6 ;;;;
+(defn xconj [t v] ;;创建值为v的树
+  (cond
+   (nil? t) {:val v, :L nil, :R nil}
+   (< v (:val t)) {:val (:val t),
+                   :L (xconj (:L t) v),
+                   :R (:R t)}
+   :else {:val (:val t),
+          :L (:L t),
+          :R (xconj (:R t) v)}))
+
+(xconj nil 5)
+(def tree1 (xconj nil 5))
+(def tree1 (xconj tree1 3))
+(def tree1 (xconj tree1 2))
+(defn xseq [t]
+  (when t
+    (concat (xseq (:L t)) [(:val t)] (xseq (:R t)))))
+(xseq tree1)
+(def tree2 (xconj tree1 7))
+(identical? (:L tree1) (:L tree2))
+
+;; 6.3 惰性
+;;lazy-seq
+(defn lz-rec-step [s]
+  (lazy-seq
+   (if (seq s)
+     [(first s) (lz-rec-step (rest s))]
+     [])))
+(lz-rec-step [1 2 3 4])
+(class (lz-rec-step [1 2 3 4]))
+(dorun (lz-rec-step (range 200000)))
+;; 丢掉头
+(let [r (range 1e9)]
+  (first r)
+  (last r))
+(let [r (range 1e9)]
+  (last r)
+  (first r))
+;; 这会内存溢出，因为last r
+
+;; 无限序列
+(defn triangle [n]
+  (/ (* n (+ n 1)) 2))
+(triangle 10)
+(map triangle (range 1 11))
+
+(def tri-nums (map triangle (iterate inc 1)))
+(take 10 tri-nums)
+(take 10 (filter even? tri-nums))
+(nth tri-nums 99)
+(double (reduce + (take 1000 (map / tri-nums))))
+(take 2 (drop-while #(< % 10000) tri-nums))
+
+;; 6.3.5 delay 和 force宏
