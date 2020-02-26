@@ -480,3 +480,62 @@ schedule
 ;; 如果两个元素求值结果是相等的，那么set保持一个。与具体类型无关。
 (into #{[]} [()])
 (into #{#{} {} []} [()])
+
+;;使用set和some在一个序列中查找项
+(some #{1 :b} [:a 1 :b 2])
+;;=> 1
+;;set里任意值在序列里，这是一种惯用法。
+
+;;contains 查询set中的值。
+(contains? #{1 2 3 4} 4)
+;;=>true
+(contains? [1 2 4 3] 4)
+;;=>false
+
+;;5.5.4 clojure.set
+(require 'clojure.set)
+(clojure.set/intersection #{} #{})
+(clojure.set/union #{} #{})
+(clojure.set/difference #{} #{})
+
+;;5.6 思考map
+(hash-map :a 1 :b 2 :c 3)
+(let [m {:a 1, 1 :b, [1 2 3] "4 5 6"}]
+  [(get m :a) (get m [1 2 3])])
+(seq {:a 1 :b 2})
+(into {} [[:a 1] [:b 2]])
+(into {} (map vec '[(:a 1) (:b 2)]))
+(apply hash-map [:a 1 :b 2])
+(zipmap [:a :b] [2 1])
+
+(sorted-map :rt 11 :tr 2)
+(sorted-map-by #(compare (subs %1 1) (subs %2 1)) "bac" 2 "adc" 3 "ccc" 4)
+
+;; 用array-map 保证插入顺序
+(seq (hash-map :a 1 :b 2 :c 3))
+(seq (array-map :a 1 :b 2 :c 3))
+
+;;5.7 pos函数设计
+;;对顺序集合返回数字索引，对map,set返回关键字，否则返回nil.
+(defn pos [e coll]
+  (let [cmp (if (map? coll)
+              #(= (second %1) %2)
+              #(= %1 %2))]
+    (loop [s coll idx 0]
+      (when (seq s)
+        (if (cmp (first s) e)
+          (if (map? coll)
+            (first (first s))
+            idx)
+          (recur (next s) (inc idx)))))))
+
+(defn index [coll]
+  (cond
+   (map? coll) (seq coll)
+   (set? coll) (map vector coll coll)
+   :else (map vector (iterate inc 0) coll)))
+(defn pos [e coll]
+  (for [[i v] (index coll) :when (= e v)] i))
+
+(defn pos [pred coll]
+  (for [[i v] (index coll) :when (pred v)] i))
