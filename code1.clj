@@ -595,3 +595,13 @@ schedule
 (take 2 (drop-while #(< % 10000) tri-nums))
 
 ;; 6.3.5 delay 和 force宏
+;;要返回真值绑定的表达式结果，if-let,when-let宏很有用。
+(if :truthy-thing
+  (let [res :truthy-thing] (print res)))
+(if-let [res :truthy-thing] (print res))
+;; delay,force（略）
+
+;; 6.4 惰性快速排序
+;; rand-ints 生成一组伪随机数
+(defn rand-ints [n]
+  (take n (repeatedly #(rand-int n))))
